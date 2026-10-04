@@ -13,28 +13,28 @@ El sistema SHALL responder a `GET /`, hecho al servidor de la API, con estado 20
 - **WHEN** un cliente hace `GET /` al servidor de la API sin credenciales
 - **THEN** recibe estado 200 con el cuerpo `{"hello":"world"}`
 
-### Requirement: Toda respuesta de la API es JSON
+### Requirement: El servidor responde siempre en JSON
 
-El sistema SHALL devolver siempre cuerpos JSON, aunque el cliente declare que prefiere otro formato.
+El sistema SHALL devolver cuerpos JSON con tipo de contenido JSON, aunque el cliente declare que prefiere otro formato.
 
 #### Scenario: El cliente pide HTML
 
-- **WHEN** un cliente hace una petición con la cabecera `Accept: text/html`
-- **THEN** la respuesta tiene tipo de contenido `application/json` y no contiene HTML
+- **WHEN** un cliente hace `GET /` con la cabecera `Accept: text/html`
+- **THEN** la respuesta tiene tipo de contenido JSON y su cuerpo es JSON válido
 
 ### Requirement: Una ruta de la API inexistente responde 404
 
-El sistema SHALL responder con estado 404 y un cuerpo JSON que incluya un campo `message` cuando la combinación de método y ruta pedida no existe.
+El sistema SHALL responder con estado 404 y un campo `message` en el cuerpo cuando la combinación de método y ruta pedida no existe.
 
 #### Scenario: Ruta que no existe
 
 - **WHEN** un cliente hace `GET /api/v1/nada`
-- **THEN** recibe estado 404 y un cuerpo JSON cuyo `message` es `Cannot GET:/api/v1/nada`
+- **THEN** recibe estado 404 y un `message` con el valor `Cannot GET:/api/v1/nada`
 
 #### Scenario: Método no admitido en una ruta existente
 
 - **WHEN** un cliente hace `DELETE /`, siendo `/` una ruta que solo admite `GET`
-- **THEN** recibe estado 404 y un cuerpo JSON cuyo `message` es `Cannot DELETE:/`
+- **THEN** recibe estado 404 y un `message` con el valor `Cannot DELETE:/`
 
 ### Requirement: Una dirección desconocida de la pantalla no muestra página de error
 
