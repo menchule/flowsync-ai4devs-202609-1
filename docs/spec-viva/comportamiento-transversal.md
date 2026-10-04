@@ -22,7 +22,7 @@ El sistema SHALL devolver en JSON, con tipo de contenido JSON, todo cuerpo de re
 - **WHEN** un cliente hace `GET /` con la cabecera `Accept: text/html`
 - **THEN** la respuesta tiene tipo de contenido JSON y su cuerpo es JSON válido
 
-### Requirement: Una ruta de la API inexistente responde 404
+### Requirement: Una petición a un método o una ruta inexistentes responde 404
 
 El sistema SHALL responder con estado 404 y un campo `message` en el cuerpo cuando la combinación de método y ruta pedida no existe.
 
@@ -31,7 +31,7 @@ El sistema SHALL responder con estado 404 y un campo `message` en el cuerpo cuan
 - **WHEN** un cliente hace `GET /api/v1/nada`
 - **THEN** recibe estado 404 y un `message` con el valor `Cannot GET:/api/v1/nada`
 
-#### Scenario: Método no admitido en una ruta existente
+#### Scenario: Método no admitido en una ruta que existe
 
 - **WHEN** un cliente hace `DELETE /`, siendo `/` una ruta que solo admite `GET`
 - **THEN** recibe estado 404 y un `message` con el valor `Cannot DELETE:/`
