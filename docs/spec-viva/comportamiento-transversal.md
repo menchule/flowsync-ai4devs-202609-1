@@ -4,14 +4,14 @@ Describe lo que cualquier cliente de la API y cualquier persona ante la pantalla
 
 ## Requirements
 
-### Requirement: La raíz de la API responde que el servidor está vivo
+### Requirement: La raíz del servidor responde con un saludo fijo
 
-El sistema SHALL responder a `GET /` con estado 200 y un cuerpo `{"hello":"world"}`.
+El sistema SHALL responder a `GET /`, hecho al servidor de la API, con estado 200 y un cuerpo JSON `{"hello":"world"}`.
 
 #### Scenario: Se consulta la raíz
 
-- **WHEN** un cliente hace `GET /` sin credenciales ni cabeceras especiales
-- **THEN** recibe estado 200 con el cuerpo `{"hello":"world"}` y tipo de contenido `application/json`
+- **WHEN** un cliente hace `GET /` al servidor de la API sin credenciales
+- **THEN** recibe estado 200 con el cuerpo `{"hello":"world"}`
 
 ### Requirement: Toda respuesta de la API es JSON
 
