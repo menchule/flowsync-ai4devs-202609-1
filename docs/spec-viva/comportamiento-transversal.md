@@ -13,9 +13,9 @@ El sistema SHALL responder a `GET /`, hecho al servidor de la API, con estado 20
 - **WHEN** un cliente hace `GET /` al servidor de la API sin credenciales
 - **THEN** recibe estado 200 con el cuerpo `{"hello":"world"}`
 
-### Requirement: El servidor responde siempre en JSON
+### Requirement: Las respuestas con cuerpo del servidor son siempre JSON
 
-El sistema SHALL devolver cuerpos JSON con tipo de contenido JSON, aunque el cliente declare que prefiere otro formato.
+El sistema SHALL devolver en JSON, con tipo de contenido JSON, todo cuerpo de respuesta, aunque el cliente declare que prefiere otro formato.
 
 #### Scenario: El cliente pide HTML
 
