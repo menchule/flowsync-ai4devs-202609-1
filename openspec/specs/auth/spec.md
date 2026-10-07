@@ -12,11 +12,15 @@ El sistema SHALL permitir crear una cuenta con una petición de registro que inc
 
 #### Scenario: Registro con datos válidos
 - **WHEN** se envía un registro con un email no usado, una contraseña de entre 8 y 32 caracteres y una confirmación idéntica
-- **THEN** la respuesta es correcta, con el usuario creado y un token de acceso dentro del envoltorio de datos de la respuesta
+- **THEN** la respuesta es correcta, con el usuario creado y un token de acceso dentro de la propiedad `data` de la respuesta
 
 #### Scenario: Registro sin nombre
 - **WHEN** se envía un registro válido con el nombre completo a nulo
 - **THEN** la cuenta se crea igualmente y el usuario devuelto tiene el nombre a nulo
+
+#### Scenario: Registro con el nombre vacío enviado directamente a la API
+- **WHEN** se envía un registro válido con el nombre completo como cadena vacía
+- **THEN** la cuenta se crea con el nombre vacío (no se convierte en nulo)
 
 #### Scenario: Registro con el nombre omitido
 - **WHEN** se envía un registro sin la clave del nombre completo
@@ -52,7 +56,7 @@ El sistema SHALL permitir iniciar sesión con email y contraseña y, si son corr
 
 #### Scenario: Credenciales correctas
 - **WHEN** se envía un inicio de sesión con el email y la contraseña de una cuenta existente
-- **THEN** la respuesta es correcta, con el usuario y un token de acceso dentro del envoltorio de datos de la respuesta
+- **THEN** la respuesta es correcta, con el usuario y un token de acceso dentro de la propiedad `data` de la respuesta
 
 #### Scenario: Credenciales incorrectas
 - **WHEN** se envía un inicio de sesión con una contraseña errónea o con un email que no corresponde a ninguna cuenta
@@ -70,8 +74,12 @@ El sistema SHALL devolver cada usuario, en registro, inicio de sesión y perfil,
 - **WHEN** se devuelve un usuario cuyo nombre completo tiene al menos dos palabras
 - **THEN** sus iniciales son la primera letra de la primera y de la segunda palabra, en mayúsculas
 
+#### Scenario: Iniciales de una persona con una sola palabra en el nombre
+- **WHEN** se devuelve un usuario cuyo nombre completo es una única palabra, o tiene dos espacios seguidos entre palabras
+- **THEN** sus iniciales son las dos primeras letras de la primera palabra, en mayúsculas
+
 #### Scenario: Iniciales de una persona sin nombre
-- **WHEN** se devuelve un usuario sin nombre completo
+- **WHEN** se devuelve un usuario con el nombre completo nulo o vacío
 - **THEN** sus iniciales son las dos primeras letras de su email, en mayúsculas
 
 #### Scenario: La contraseña no se expone
@@ -80,10 +88,10 @@ El sistema SHALL devolver cada usuario, en registro, inicio de sesión y perfil,
 
 ### Requirement: Consulta del perfil propio
 
-El sistema SHALL devolver los datos públicos de la persona autenticada cuando se consulta su perfil con un token de acceso válido.
+El sistema SHALL devolver los datos públicos de la persona autenticada (los tokens no caducan por tiempo: solo dejan de valer al revocarse) cuando se consulta su perfil con un token de acceso válido.
 
 #### Scenario: Perfil con token válido
-- **WHEN** se consulta el perfil con un token de acceso vigente en la cabecera de autorización
+- **WHEN** se consulta el perfil con un token de acceso en la cabecera de autorización con el esquema Bearer (`Authorization: Bearer <token>`)
 - **THEN** la respuesta es correcta y contiene los datos públicos de la persona dueña del token
 
 #### Scenario: Perfil sin token
@@ -100,7 +108,7 @@ El sistema SHALL permitir cerrar sesión a la persona autenticada revocando el t
 
 #### Scenario: Cierre de sesión correcto
 - **WHEN** se solicita el cierre de sesión con un token vigente
-- **THEN** la respuesta es correcta con un mensaje de confirmación y ese token deja de ser aceptado
+- **THEN** la respuesta es correcta con un mensaje de confirmación (hoy en inglés, «Logged out successfully») y ese token deja de ser aceptado
 
 #### Scenario: Otras sesiones siguen activas
 - **WHEN** una persona tiene dos tokens vigentes y cierra sesión con uno de ellos
@@ -112,7 +120,7 @@ El sistema SHALL permitir cerrar sesión a la persona autenticada revocando el t
 
 ### Requirement: Formato uniforme de las respuestas de la API
 
-El sistema SHALL responder siempre en JSON, con los datos útiles de las respuestas correctas dentro de una propiedad de datos y los fallos de validación como una lista de errores con su mensaje, regla y campo.
+El sistema SHALL responder siempre en JSON, con los datos útiles de las respuestas correctas dentro de una propiedad de datos y los fallos de validación (422) como una lista de errores con su mensaje, regla y campo. Los errores de credenciales (400) y de acceso no autorizado (401) también son JSON, pero no tienen por qué incluir regla ni campo.
 
 #### Scenario: Respuesta correcta envuelta
 - **WHEN** una petición de registro, inicio de sesión o perfil tiene éxito
@@ -146,6 +154,14 @@ El sistema SHALL ofrecer una pantalla de registro con los campos nombre completo
 - **WHEN** el servidor rechaza el formulario por un campo, por ejemplo una contraseña demasiado corta
 - **THEN** la persona ve un mensaje en castellano bajo ese campo y el formulario conserva lo que había escrito
 
+#### Scenario: Indicación de longitud de la contraseña
+- **WHEN** el campo de contraseña no tiene error
+- **THEN** se ve la indicación «Entre 8 y 32 caracteres.», que se sustituye por el mensaje de error cuando ese campo falla
+
+#### Scenario: Servidor inaccesible al registrarse
+- **WHEN** la persona envía el formulario y no hay conexión con el servidor
+- **THEN** ve un aviso que indica que no se pudo conectar con el servidor
+
 #### Scenario: Ir a iniciar sesión
 - **WHEN** la persona pulsa «Inicia sesión» en el pie de la pantalla de registro
 - **THEN** pasa a la pantalla de inicio de sesión
@@ -161,6 +177,10 @@ El sistema SHALL ofrecer una pantalla de inicio de sesión con los campos email 
 #### Scenario: Credenciales incorrectas
 - **WHEN** la persona introduce un email o una contraseña erróneos
 - **THEN** ve un aviso de error con el texto «El email o la contraseña no son correctos.» y permanece en la pantalla de inicio de sesión
+
+#### Scenario: Datos de inicio de sesión inválidos
+- **WHEN** la persona envía el formulario con la contraseña vacía o con un email que no es una dirección válida
+- **THEN** ve el mensaje correspondiente en castellano bajo ese campo, tras la respuesta del servidor
 
 #### Scenario: Servidor inaccesible
 - **WHEN** la persona envía el formulario y no hay conexión con el servidor
@@ -190,9 +210,17 @@ El sistema SHALL mostrar los errores de los formularios de acceso en castellano,
 - **WHEN** un mismo campo incumple varias reglas a la vez
 - **THEN** la persona ve solo el primer mensaje de ese campo
 
+#### Scenario: Error en campos visibles y no visibles a la vez
+- **WHEN** el servidor rechaza a la vez campos visibles y no visibles
+- **THEN** los mensajes de los campos visibles aparecen bajo cada campo y además se muestra el aviso general
+
 #### Scenario: Nuevo envío
-- **WHEN** la persona vuelve a enviar el formulario tras un error
-- **THEN** los errores anteriores desaparecen mientras se procesa el nuevo intento
+- **WHEN** la persona vuelve a enviar el formulario tras un error de ese intento
+- **THEN** los errores del intento anterior desaparecen mientras se procesa el nuevo
+
+#### Scenario: Aviso de sesión perdida al reenviar el login
+- **WHEN** la pantalla de inicio de sesión muestra el aviso de sesión perdida y la persona reenvía el formulario
+- **THEN** el aviso sigue visible mientras se procesa y solo desaparece si el inicio de sesión tiene éxito; si falla, lo sustituye el error del nuevo intento
 
 ### Requirement: Persistencia de la sesión entre visitas
 
@@ -203,7 +231,7 @@ El sistema SHALL conservar la sesión iniciada en el navegador de la persona par
 - **THEN** ve un indicador de carga mientras se comprueba y a continuación su perfil, sin pasar por la pantalla de inicio de sesión
 
 #### Scenario: Sesión caducada o revocada
-- **WHEN** la persona abre la aplicación con una sesión guardada que el servidor rechaza
+- **WHEN** la persona abre la aplicación con una sesión guardada que el servidor rechaza como no autorizada (401)
 - **THEN** pasa a la pantalla de inicio de sesión, que le muestra el aviso «Tu sesión ha caducado. Vuelve a iniciar sesión.», y la sesión guardada se descarta
 
 #### Scenario: Servidor caído al restaurar la sesión
@@ -243,7 +271,7 @@ El sistema SHALL mostrar a la persona con sesión iniciada sus iniciales, su nom
 - **THEN** ve sus iniciales, su nombre, su email y «Miembro desde» con la fecha de alta en formato largo en castellano
 
 #### Scenario: Perfil sin nombre
-- **WHEN** una persona registrada sin nombre abre su perfil
+- **WHEN** una persona registrada con el nombre nulo abre su perfil
 - **THEN** ve «Sin nombre» donde iría su nombre
 
 ### Requirement: Cierre de sesión desde la pantalla
@@ -252,7 +280,7 @@ El sistema SHALL permitir cerrar sesión desde el perfil y SHALL dejar a la pers
 
 #### Scenario: Cierre correcto
 - **WHEN** la persona pulsa «Cerrar sesión»
-- **THEN** el botón muestra «Cerrando sesión…», la sesión guardada se elimina y la persona es llevada a la pantalla de inicio de sesión
+- **THEN** la sesión guardada se elimina y la persona es llevada a la pantalla de inicio de sesión
 
 #### Scenario: Cierre con el servidor inaccesible
 - **WHEN** la persona pulsa «Cerrar sesión» y el servidor no responde o rechaza el token
